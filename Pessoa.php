@@ -17,97 +17,86 @@ function pr($dado, $print_r = true) {
     }
 }
 
-require_once 'PessoaModel.php';
+require_once 'Controller.php';
 
-class Pessoa extends PessoaModel {
+class Pessoa extends Controller {
 
     public function __construct() {
-        parent::__construct();
-
-        //RETORNO - inicio
-        $retorno = [
-            'status' => 'erro',
-            'mensagem' => 'Ação não confirmada',
-            'lista' => [],
-            'dado' => ''
-        ];
-
-        //Json para Post
-        $_POST = json_decode(file_get_contents('php://input'), true);
+        parent::__construct('PessoaModel');
 
         try {
 
             //LISTAR
-            if (@$_POST['ACAO'] == 'Listar') {
-                $retorno['status'] = 'ok';
-                $retorno['mensagem'] = 'Pessoas listadas';
+            if (@$this->post['ACAO'] == 'Listar') {
+                $this->retorno['status'] = 'ok';
+                $this->retorno['mensagem'] = 'Pessoas listadas';
 
-                $DADOS = $this->listar();
-                $retorno['lista'] = $DADOS;
+                $DADOS = $this->Model->listar();
+                $this->retorno['lista'] = $DADOS;
             }
             //INCLUIR
-            elseif (@$_POST['ACAO'] == 'Incluir') {
-                $retorno['status'] = 'erro';
-                $retorno['mensagem'] = "$_POST[NOME] já existe";
+            elseif (@$this->post['ACAO'] == 'Incluir') {
+                $this->retorno['status'] = 'erro';
+                $this->retorno['mensagem'] = $this->post['NOME'] . ' já existe';
 
-                $existeDado = $this->listar(['NOME' => $_POST['NOME']]);
+                $existeDado = $this->Model->listar(['NOME' => $this->post['NOME']]);
                 if (!$existeDado) {
                     $DADOS = $this->dados();
-                    $execute = $this->incluir($DADOS);
+                    $execute = $this->Model->incluir($DADOS);
 
-                    $retorno['status'] = 'ok';
-                    $retorno['mensagem'] = "$_POST[NOME] incluído(a)";
+                    $this->retorno['status'] = 'ok';
+                    $this->retorno['mensagem'] = $this->post['NOME'] . ' incluído(a)';
                 }
             }
             //EXCLUIR
-            elseif (@$_POST['ACAO'] == 'Excluir') {
-                $retorno['status'] = 'ok';
-                $retorno['mensagem'] = "$_POST[descricao] excluído(a)";
-                $execute = $this->excluir(['ID_PESSOA' => $_POST['ID_PESSOA']]);
+            elseif (@$this->post['ACAO'] == 'Excluir') {
+                $this->retorno['status'] = 'ok';
+                $this->retorno['mensagem'] = $this->post['descricao'] . ' excluído(a)';
+                $execute = $this->Model->excluir(['ID_PESSOA' => $this->post['ID_PESSOA']]);
             }
             //Consulta
-            elseif (@$_POST['ACAO'] == 'Buscar') {
-                $retorno['status'] = 'ok';
-                $retorno['mensagem'] = 'Pessoa listada';
+            elseif (@$this->post['ACAO'] == 'Buscar') {
+                $this->retorno['status'] = 'ok';
+                $this->retorno['mensagem'] = 'Pessoa listada';
 
-                $DADO = $this->listar(['ID_PESSOA' => $_POST['ID_PESSOA']]);
-                $retorno['dado'] = $DADO[0];
+                $DADO = $this->Model->listar(['ID_PESSOA' => $this->post['ID_PESSOA']]);
+                $this->retorno['dado'] = $DADO[0];
 
                 if (!$DADO) {
-                    $retorno['status'] = 'erro';
-                    $retorno['mensagem'] = 'Pessoa não localizada';
+                    $this->retorno['status'] = 'erro';
+                    $this->retorno['mensagem'] = 'Pessoa não localizada';
                 }
             }
             //ALTERAR
-            elseif (@$_POST['ACAO'] == 'Alterar') {
-                $retorno['status'] = 'erro';
-                $retorno['mensagem'] = "$_POST[NOME] já existe";
+            elseif (@$this->post['ACAO'] == 'Alterar') {
+                $this->retorno['status'] = 'erro';
+                $this->retorno['mensagem'] = $this->post['NOME'] . ' já existe';
 
-                $DADO = @$this->listar(['NOME' => $_POST['NOME']])[0];
-                if (!$DADO || $DADO['ID_PESSOA'] == $_POST['ID_PESSOA']) {
-                    $retorno['status'] = 'ok';
-                    $retorno['mensagem'] = "$_POST[NOME] alterado(a)";
+                $DADO = @$this->Model->listar(['NOME' => $this->post['NOME']])[0];
+                if (!$DADO || $DADO['ID_PESSOA'] == $this->post['ID_PESSOA']) {
+                    $this->retorno['status'] = 'ok';
+                    $this->retorno['mensagem'] = $this->post['NOME'] . ' alterado(a)';
 
                     $DADOS = $this->dados();
-                    $DADOS['ID_PESSOA'] = $_POST['ID_PESSOA'];
-                    $execute = $this->alterar($DADOS);
+                    $DADOS['ID_PESSOA'] = $this->post['ID_PESSOA'];
+                    $execute = $this->Model->alterar($DADOS);
                 }
             }
         } catch (Exception $ex) {
-            $retorno = [
+            $this->retorno = [
                 'status' => 'erro',
                 'mensagem' => $ex->getMessage()
             ];
         }
 
-        exit(json_encode($retorno));
+        exit(json_encode($this->retorno));
     }
 
     private function dados() {
         return [
-            'NOME' => $_POST['NOME'],
-            'UF' => $_POST['UF'],
-            'OBSERVACAO' => $_POST['OBSERVACAO']
+            'NOME' => $this->post['NOME'],
+            'UF' => $this->post['UF'],
+            'OBSERVACAO' => $this->post['OBSERVACAO']
         ];
     }
 

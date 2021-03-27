@@ -3,7 +3,7 @@
 require_once 'Conexao.php';
 class PessoaModel extends Conexao {
 
-    protected function listar($CONSULTA = []) {
+    public function listar($CONSULTA = []) {
         $whereExecute = $this->whereExecute($CONSULTA);
         $sql = "SELECT * FROM PESSOA $whereExecute[where] ORDER BY NOME";
 
@@ -14,7 +14,7 @@ class PessoaModel extends Conexao {
         return $DADOS;
     }
 
-    protected function incluir($DADOS) {
+    public function incluir($DADOS) {
         $prepare = $this->pdo->prepare('
             INSERT INTO PESSOA 
                 ( NOME, UF, OBSERVACAO) VALUES 
@@ -24,7 +24,7 @@ class PessoaModel extends Conexao {
         return $prepare->execute($DADOS);
     }
 
-    protected function excluir($DADOS) {
+    public function excluir($DADOS) {
         $prepare = $this->pdo->prepare('
             DELETE FROM PESSOA WHERE ID_PESSOA = :ID_PESSOA
         ');
@@ -32,7 +32,7 @@ class PessoaModel extends Conexao {
         return $prepare->execute($DADOS);
     }
 
-    protected function alterar($DADOS) {
+    public function alterar($DADOS) {
         $prepare = $this->pdo->prepare('
             UPDATE PESSOA SET NOME = :NOME, 
                                 UF = :UF,
